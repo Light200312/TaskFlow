@@ -38,11 +38,12 @@ export const registerUser=async (req, res) => {
       { expiresIn: "5h" },
     );
 
-    return res.status(201).json({
-      message: "User registered successfully",
-      username: username.trim(),
-      token,
-    });
+  return res.status(201).json({
+  message: "User registered successfully",
+  userId: result.insertId,
+  username: username.trim(),
+  token,
+});
   } catch (error) {
     if (error.code === "ER_DUP_ENTRY") {
       return res.status(409).json({
@@ -107,11 +108,12 @@ export const loginUser=async (req, res) => {
       { expiresIn: "5h" }
     );
 
-    return res.status(200).json({
-      message: "Login successful!",
-      username: user.name,
-      token,
-    });
+  return res.status(200).json({
+  message: "Login successful!",
+  userId: user.id,
+  username: user.name,
+  token,
+});
   } catch (error) {
     console.error("Login error:", error);
 

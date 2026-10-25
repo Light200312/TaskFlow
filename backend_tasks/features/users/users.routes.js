@@ -3,7 +3,7 @@ import { registerUser,loginUser ,searchUserByEmailorName} from "./users.controll
 
 const router = express.Router();
 
-
+//'/api/users'
 router.post("/register", registerUser);
 
 
