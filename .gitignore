@@ -1,7 +1,7 @@
 # Node / JS dependencies
 node_modules/
 **/node_modules/
-
+**/past_code_dont_reuse_or_refer
 # Environment files
 .env
 .env.*
