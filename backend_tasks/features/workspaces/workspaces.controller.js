@@ -71,13 +71,20 @@ const [result] = await pool.query(
 export const getAllWorkspaces=async (req,res)=>{
   const userId=req.user.userId;
    try{
-    const [workspaces] = await pool.query(
-      `SELECT w.id, w.name, w.slug, w.owner_id
-       FROM workspaces w
-       JOIN workspace_members wm ON w.id = wm.workspace_id
-       WHERE wm.user_id = ?`,
-      [userId]
-    );
+   const [workspaces] = await pool.query(
+  `SELECT
+     w.id,
+     w.name,
+     w.slug,
+     w.owner_id,
+     wm.role
+   FROM workspaces w
+   JOIN workspace_members wm
+     ON w.id = wm.workspace_id
+   WHERE wm.user_id = ?
+   ORDER BY w.id DESC`,
+  [userId]
+);
     return res.status(200).json({message: "Workspaces fetched successfully.",count: workspaces.length, workspaces });
    }catch(err){
     console.error(err);
