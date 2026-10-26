@@ -6,7 +6,7 @@ export default function Dashboard() {
   const logout = useAuthStore((state) => state.logout);
 
   return (
-    <main className="min-h-screen bg-slate-100 p-6">
+    <main className="min-h-screen dark:bg-gray-700 bg-slate-100 p-6">
       <div className="mx-auto max-w-5xl">
         <header className="flex items-center justify-between rounded-xl bg-white p-6 shadow-sm">
           <div>
