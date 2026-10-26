@@ -13,7 +13,7 @@ import MyTasks from "./pages/MyTasks";
 import TeamMembers from "./pages/TeamMembers";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-
+import WorkspaceDetails from "./pages/WorkspaceDetails";
 export default function App() {
   return (
     <BrowserRouter>
@@ -28,6 +28,10 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route
+              path="/workspaces/:workspaceId"
+              element={<WorkspaceDetails />}
+            />
             <Route path="/workspaces" element={<Workspaces />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/tasks" element={<MyTasks />} />
