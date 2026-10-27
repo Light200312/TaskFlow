@@ -1,96 +1,17 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   FolderKanban,
   Plus,
-  CalendarDays,
   RefreshCw,
-  X,
 } from "lucide-react";
-
+import WorkspaceInvitations from
+  "../features/workspaces/WorkspaceInvitations";
 import { getWorkspaceById } from "../api/workspaceApi";
-import {
-  getProjectsByWorkspace,
-  createProject,
-} from "../api/projectApi";
-
-const PROJECT_STATUSES = [
-  { value: "planning", label: "Planning" },
-  { value: "active", label: "Active" },
-  { value: "on_hold", label: "On hold" },
-  { value: "completed", label: "Completed" },
-];
-
-const STATUS_STYLES = {
-  planning:
-    "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
-  active:
-    "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
-  on_hold:
-    "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
-  completed:
-    "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300",
-};
-
-function formatDate(date) {
-  if (!date) return null;
-
-  // Avoid timezone shifts when MySQL returns a YYYY-MM-DD date.
-  const [year, month, day] = String(date).slice(0, 10).split("-");
-  return new Date(
-    Number(year),
-    Number(month) - 1,
-    Number(day)
-  ).toLocaleDateString(undefined, {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-function ProjectCard({ project }) {
-  return (
-    <article className="rounded-xl border border-slate-200 bg-white p-5 transition hover:border-indigo-300 hover:shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:hover:border-indigo-700">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400">
-            <FolderKanban size={22} />
-          </div>
-
-          <div className="min-w-0">
-            <h3 className="break-words font-semibold text-slate-900 dark:text-slate-100">
-              {project.name}
-            </h3>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Project #{project.id}
-            </p>
-          </div>
-        </div>
-
-        <span
-          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
-            STATUS_STYLES[project.status] || STATUS_STYLES.planning
-          }`}
-        >
-          {project.status.replace("_", " ")}
-        </span>
-      </div>
-
-      <p className="mt-4 min-h-10 whitespace-pre-wrap break-words text-sm text-slate-600 dark:text-slate-300">
-        {project.description || "No description provided."}
-      </p>
-
-      {project.due_date && (
-        <div className="mt-4 flex items-center gap-2 border-t border-slate-100 pt-4 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
-          <CalendarDays size={15} />
-          Due {formatDate(project.due_date)}
-        </div>
-      )}
-    </article>
-  );
-}
+import { getProjectsByWorkspace, createProject } from "../api/projectApi";
+import ProjectCard from "../features/projects/ProjectCard";
+import ProjectForm from "../features/projects/ProjectForm";
 
 export default function WorkspaceDetails() {
   const { workspaceId } = useParams();
@@ -107,11 +28,6 @@ export default function WorkspaceDetails() {
   const [creating, setCreating] = useState(false);
   const [formError, setFormError] = useState("");
 
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [status, setStatus] = useState("planning");
-  const [dueDate, setDueDate] = useState("");
-
   async function loadProjects() {
     setProjectsLoading(true);
     setProjectsError("");
@@ -121,8 +37,7 @@ export default function WorkspaceDetails() {
       setProjects(data.projects ?? []);
     } catch (err) {
       setProjectsError(
-        err.response?.data?.message ||
-          "Unable to load projects."
+        err.response?.data?.message || "Unable to load projects.",
       );
     } finally {
       setProjectsLoading(false);
@@ -145,8 +60,7 @@ export default function WorkspaceDetails() {
       } catch (err) {
         if (!cancelled) {
           setError(
-            err.response?.data?.message ||
-              "Unable to load this workspace."
+            err.response?.data?.message || "Unable to load this workspace.",
           );
         }
       } finally {
@@ -165,40 +79,20 @@ export default function WorkspaceDetails() {
     loadProjects();
   }, [workspaceId]);
 
-  function resetForm() {
-    setName("");
-    setDescription("");
-    setStatus("planning");
-    setDueDate("");
+  async function handleCreateProject(projectData) {
     setFormError("");
-  }
-
-  async function handleCreateProject(event) {
-    event.preventDefault();
-    setFormError("");
-
-    if (!name.trim()) {
-      setFormError("Project name is required.");
-      return;
-    }
 
     setCreating(true);
 
     try {
-      await createProject(workspaceId, {
-        name: name.trim(),
-        description: description.trim() || null,
-        status,
-        due_date: dueDate || null,
-      });
+      await createProject(workspaceId, projectData);
 
       setShowModal(false);
-      resetForm();
       await loadProjects();
     } catch (err) {
       setFormError(
         err.response?.data?.message ||
-          "Unable to create project. Please try again."
+          "Unable to create project. Please try again.",
       );
     } finally {
       setCreating(false);
@@ -261,7 +155,7 @@ export default function WorkspaceDetails() {
           </p>
         </div>
       </section>
-
+<WorkspaceInvitations workspaceId={workspaceId} />
       <section>
         <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div>
@@ -275,7 +169,7 @@ export default function WorkspaceDetails() {
 
           <button
             onClick={() => {
-              resetForm();
+              setFormError("");
               setShowModal(true);
             }}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700"
@@ -288,10 +182,7 @@ export default function WorkspaceDetails() {
         {projectsError && (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
             <span>{projectsError}</span>
-            <button
-              onClick={loadProjects}
-              className="font-semibold underline"
-            >
+            <button onClick={loadProjects} className="font-semibold underline">
               Retry
             </button>
           </div>
@@ -315,7 +206,7 @@ export default function WorkspaceDetails() {
             </p>
             <button
               onClick={() => {
-                resetForm();
+                setFormError("");
                 setShowModal(true);
               }}
               className="mt-5 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700"
@@ -326,7 +217,11 @@ export default function WorkspaceDetails() {
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {projects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+              <ProjectCard
+                key={project.id}
+                project={project}
+                workspaceId={workspaceId}
+              />
             ))}
           </div>
         )}
@@ -347,149 +242,13 @@ export default function WorkspaceDetails() {
       </section>
 
       {showModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/50 p-4"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget && !creating) {
-              setShowModal(false);
-            }
-          }}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="create-project-title"
-            className="my-auto w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-900"
-          >
-            <div className="mb-5 flex items-start justify-between gap-4">
-              <div>
-                <h2
-                  id="create-project-title"
-                  className="text-xl font-bold text-slate-900 dark:text-slate-100"
-                >
-                  Create project
-                </h2>
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  Add a project to {workspace.name}.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                disabled={creating}
-                aria-label="Close dialog"
-                className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-50 dark:text-slate-400 dark:hover:bg-slate-800"
-              >
-                <X size={19} />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateProject} className="space-y-4">
-              <div>
-                <label
-                  htmlFor="project-name"
-                  className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
-                >
-                  Project name *
-                </label>
-                <input
-                  id="project-name"
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  maxLength={150}
-                  required
-                  autoFocus
-                  placeholder="e.g. Website redesign"
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:ring-indigo-950"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="project-description"
-                  className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
-                >
-                  Description
-                </label>
-                <textarea
-                  id="project-description"
-                  value={description}
-                  onChange={(event) => setDescription(event.target.value)}
-                  rows={3}
-                  placeholder="What is this project about?"
-                  className="w-full resize-y rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:ring-indigo-950"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="project-status"
-                    className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
-                  >
-                    Status
-                  </label>
-                  <select
-                    id="project-status"
-                    value={status}
-                    onChange={(event) => setStatus(event.target.value)}
-                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
-                  >
-                    {PROJECT_STATUSES.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="project-due-date"
-                    className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
-                  >
-                    Due date
-                  </label>
-                  <input
-                    id="project-due-date"
-                    type="date"
-                    value={dueDate}
-                    onChange={(event) => setDueDate(event.target.value)}
-                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
-                  />
-                </div>
-              </div>
-
-              {formError && (
-                <p
-                  role="alert"
-                  className="rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300"
-                >
-                  {formError}
-                </p>
-              )}
-
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  disabled={creating}
-                  className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={creating}
-                  className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {creating ? "Creating..." : "Create project"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <ProjectForm
+          error={formError}
+          onClose={() => setShowModal(false)}
+          onSubmit={handleCreateProject}
+          submitting={creating}
+          workspaceName={workspace.name}
+        />
       )}
     </div>
   );
