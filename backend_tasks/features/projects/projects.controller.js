@@ -5,7 +5,7 @@ CREATE TABLE projects (
   workspace_id INT UNSIGNED NOT NULL,
   name         VARCHAR(150) NOT NULL,
   description  TEXT,
-  status       ENUM('planning','active','on_hold','completed') NOT NULL DEFAULT 'planning',
+  status       ENUM('planning','active','on_hold','completed','archived') NOT NULL DEFAULT 'planning',
   due_date     DATE NULL,
   created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE
@@ -155,12 +155,13 @@ export const updateProject = async (req, res) => {
        SET name = COALESCE(?, name),
            description = COALESCE(?, description),
            status = COALESCE(?, status),
-           due_date = COALESCE(?, due_date)
+           due_date = IF(?, ?, due_date)
        WHERE workspace_id = ? AND id = ?`,
       [
         name?.trim() ?? null,
         description ?? null,
         status ?? null,
+        Object.hasOwn(req.body ?? {}, "due_date"),
         due_date ?? null,
         Number(workspaceId),
         Number(projectId),
