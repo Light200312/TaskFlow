@@ -13,24 +13,32 @@ CREATE TABLE projects (
 */
 import pool from "../../db.js";
 
-const validateProjectDetails = (name, description, status, due_date) => {
+const validateProjectDetails = (name, description, status, due_date, partial = false) => {
   const validDate = (date) =>
     date == null ||
     (typeof date === "string" &&
       /^\d{4}-\d{2}-\d{2}$/.test(date) &&
       !isNaN(Date.parse(date)) &&
       new Date(date).toISOString().startsWith(date));
+  const validName =
+    (partial && name === undefined) ||
+    (typeof name === "string" &&
+      !!name.trim() &&
+      name.trim().length <= 150);
 
   return (
-    typeof name === "string" &&
-    !!name.trim() &&
-    name.trim().length <= 150 &&
+    validName &&
+    (!partial ||
+      [name, description, status, due_date].some(
+        (value) => value !== undefined,
+      )) &&
     (description == null || typeof description === "string") &&
     (status === undefined ||
       ["planning", "active", "on_hold", "completed"].includes(status)) &&
     validDate(due_date)
   );
 };
+
 // TODO: Create a new project inside a workspace
 // POST /workspaces/:workspaceId/projects
 export const createProject = async (req, res) => {
@@ -137,7 +145,7 @@ export const updateProject = async (req, res) => {
   const { name, description, status, due_date } = req.body ?? {};
 
   // Validate inputs
-  if (!validateProjectDetails(name, description, status, due_date)) {
+  if (!validateProjectDetails(name, description, status, due_date, true)) {
     return res.status(400).json({ message: "Invalid project details." });
   }
 
