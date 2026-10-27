@@ -34,6 +34,7 @@ import pool from "../../db.js";
 // 1. Send an invitation
 // POST /api/workspaces/:workspaceId/invitations
 // Only workspace owners/admins
+
 export const createInvitation = async (req, res) => {
   const { workspaceId } = req.params;
   const { userId, role = "member" } = req.body;
@@ -42,6 +43,7 @@ export const createInvitation = async (req, res) => {
   const parsedWorkspaceId = Number(workspaceId);
   const parsedUserId = Number(userId);
 
+  // Validate input
   if (
     !/^[1-9]\d*$/.test(workspaceId) ||
     !Number.isSafeInteger(parsedWorkspaceId) ||
@@ -54,16 +56,21 @@ export const createInvitation = async (req, res) => {
     });
   }
 
+  let connection;
+
   try {
+    // Verify inviter's workspace role
     const [members] = await pool.query(
       `SELECT role
        FROM workspace_members
        WHERE workspace_id = ? AND user_id = ?`,
-      [parsedWorkspaceId, invitedBy],
+      [parsedWorkspaceId, invitedBy]
     );
 
     if (members.length === 0) {
-      return res.status(404).json({ message: "Workspace not found." });
+      return res.status(404).json({
+        message: "Workspace not found.",
+      });
     }
 
     if (!["owner", "admin"].includes(members[0].role)) {
@@ -72,25 +79,101 @@ export const createInvitation = async (req, res) => {
       });
     }
 
-    const [result] = await pool.query(
-      `INSERT INTO workspace_invitations
-         (workspace_id, invited_user_id, invited_by, role)
-       VALUES (?, ?, ?, ?)`,
-      [parsedWorkspaceId, parsedUserId, invitedBy, role],
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    // Check whether the target user is already a workspace member
+    const [existingMembers] = await connection.query(
+      `SELECT user_id
+       FROM workspace_members
+       WHERE workspace_id = ? AND user_id = ?`,
+      [parsedWorkspaceId, parsedUserId]
     );
+
+    if (existingMembers.length > 0) {
+      await connection.rollback();
+
+      return res.status(409).json({
+        message: "This user is already a member of the workspace.",
+      });
+    }
+
+    // Find an existing invitation for this workspace/user pair
+    const [existingInvitations] = await connection.query(
+      `SELECT id, status
+       FROM workspace_invitations
+       WHERE workspace_id = ? AND invited_user_id = ?
+       FOR UPDATE`,
+      [parsedWorkspaceId, parsedUserId]
+    );
+
+    let invitationId;
+    let invitationStatus;
+
+    if (existingInvitations.length > 0) {
+      const existing = existingInvitations[0];
+
+      if (existing.status === "pending") {
+        await connection.rollback();
+
+        return res.status(409).json({
+          message: "A pending invitation already exists for this user.",
+        });
+      }
+
+      if (existing.status === "accepted") {
+        await connection.rollback();
+
+        return res.status(409).json({
+          message: "This invitation has already been accepted.",
+        });
+      }
+
+      // Reuse a declined or revoked invitation
+      await connection.query(
+        `UPDATE workspace_invitations
+         SET invited_by = ?,
+             role = ?,
+             status = 'pending',
+             created_at = CURRENT_TIMESTAMP,
+             responded_at = NULL
+         WHERE id = ?`,
+        [invitedBy, role, existing.id]
+      );
+
+      invitationId = existing.id;
+      invitationStatus = "pending";
+    } else {
+      // No previous invitation exists: create a new one
+      const [result] = await connection.query(
+        `INSERT INTO workspace_invitations
+           (workspace_id, invited_user_id, invited_by, role)
+         VALUES (?, ?, ?, ?)`,
+        [parsedWorkspaceId, parsedUserId, invitedBy, role]
+      );
+
+      invitationId = result.insertId;
+      invitationStatus = "pending";
+    }
+
+    await connection.commit();
 
     return res.status(201).json({
       message: "Invitation created successfully.",
       invitation: {
-        id: result.insertId,
+        id: invitationId,
         workspace_id: parsedWorkspaceId,
         invited_user_id: parsedUserId,
         invited_by: invitedBy,
         role,
-        status: "pending",
+        status: invitationStatus,
       },
     });
   } catch (err) {
+    if (connection) {
+      await connection.rollback();
+    }
+
     if (err.code === "ER_DUP_ENTRY") {
       return res.status(409).json({
         message: "An invitation already exists for this user and workspace.",
@@ -98,13 +181,18 @@ export const createInvitation = async (req, res) => {
     }
 
     if (err.code === "ER_NO_REFERENCED_ROW_2") {
-      return res.status(404).json({ message: "User not found." });
+      return res.status(404).json({
+        message: "Workspace or user not found.",
+      });
     }
 
     console.error("Invitation creation error:", err);
+
     return res.status(500).json({
       message: "Failed to create invitation.",
     });
+  } finally {
+    connection?.release();
   }
 };
 
@@ -129,10 +217,10 @@ export const getPendingInvitations = async (req, res) => {
        FROM workspace_invitations AS wi
        JOIN workspaces AS w ON w.id = wi.workspace_id
        JOIN users AS u ON u.id = wi.invited_by
-       WHERE wi.invited_user_id = ?
+       WHERE wi.invited_user_id = ? OR wi.invited_by = ?
          AND wi.status = 'pending'
        ORDER BY wi.created_at DESC`,
-      [userId]
+      [userId, userId]
     );
 
     if (rows.length === 0) {
