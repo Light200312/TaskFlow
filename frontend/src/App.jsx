@@ -13,7 +13,9 @@ import MyTasks from "./pages/MyTasks";
 import TeamMembers from "./pages/TeamMembers";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import ProjectDetails from "./pages/ProjectDetails";
 import WorkspaceDetails from "./pages/WorkspaceDetails";
+import PendingInvitations from "./features/workspaces/PendingInvitations";
 export default function App() {
   return (
     <BrowserRouter>
@@ -32,11 +34,16 @@ export default function App() {
               path="/workspaces/:workspaceId"
               element={<WorkspaceDetails />}
             />
+            <Route
+              path="/workspaces/:workspaceId/projects/:projectId"
+              element={<ProjectDetails />}
+            />
             <Route path="/workspaces" element={<Workspaces />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/tasks" element={<MyTasks />} />
             <Route path="/members" element={<TeamMembers />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/invitations" element={<PendingInvitations />} />
           </Route>
         </Route>
 

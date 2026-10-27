@@ -16,6 +16,7 @@ const navigation = [
   { name: "Projects", path: "/projects", icon: FolderKanban },
   { name: "My Tasks", path: "/tasks", icon: CheckSquare },
   { name: "Team Members", path: "/members", icon: Users },
+  { name: "Pending Invitations", path: "/invitations", icon: Users },
 ];
 
 export default function Sidebar() {
