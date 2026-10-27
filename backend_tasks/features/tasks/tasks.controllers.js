@@ -22,49 +22,61 @@ CREATE TABLE tasks (
 const VALID_STATUSES = ["todo", "in_progress", "review", "done"];
 const VALID_PRIORITIES = ["low", "medium", "high", "urgent"];
 
-export const validateTaskDetails = ({
-  title,
-  description,
-  status,
-  priority,
-  due_date,
-}) => {
+
+export const validateTaskDetails = (
+  { title, description, status, priority, due_date },
+  { partial = false } = {}
+) => {
   const errors = {};
 
-  // Title: required, non-empty, maximum 200 characters
-  if (typeof title !== "string" || !title.trim()) {
-    errors.title = "Title is required.";
-  } else if (title.trim().length > 200) {
-    errors.title = "Title cannot exceed 200 characters.";
+  // Title: required for creation, validated if supplied during update
+  if (!partial || title !== undefined) {
+    if (typeof title !== "string" || !title.trim()) {
+      errors.title = "Title is required.";
+    } else if (title.trim().length > 200) {
+      errors.title = "Title cannot exceed 200 characters.";
+    }
   }
 
-  // Description: optional, but must be a string
+  // Description: optional; must be a string or null
   if (
     description !== undefined &&
     description !== null &&
     typeof description !== "string"
   ) {
-    errors.description = "Description must be a string.";
+    errors.description = "Description must be a string or null.";
   }
 
-  // Status: optional; database default is 'todo'
-  if (status !== undefined && !VALID_STATUSES.includes(status)) {
+  // Status
+  if (
+    status !== undefined &&
+    !VALID_STATUSES.includes(status)
+  ) {
     errors.status = `Status must be one of: ${VALID_STATUSES.join(", ")}.`;
   }
 
-  // Priority: optional; database default is 'medium'
-  if (priority !== undefined && !VALID_PRIORITIES.includes(priority)) {
+  // Priority
+  if (
+    priority !== undefined &&
+    !VALID_PRIORITIES.includes(priority)
+  ) {
     errors.priority = `Priority must be one of: ${VALID_PRIORITIES.join(", ")}.`;
   }
 
-  // Due date: optional, expected as YYYY-MM-DD
+  // Due date: valid YYYY-MM-DD, null, or empty string to clear
   if (due_date !== undefined && due_date !== null && due_date !== "") {
-    if (typeof due_date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(due_date)) {
+    if (
+      typeof due_date !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(due_date)
+    ) {
       errors.due_date = "Due date must use YYYY-MM-DD format.";
     } else {
       const date = new Date(`${due_date}T00:00:00.000Z`);
 
-      if (date.toISOString().slice(0, 10) !== due_date) {
+      if (
+        Number.isNaN(date.getTime()) ||
+        date.toISOString().slice(0, 10) !== due_date
+      ) {
         errors.due_date = "Due date is not a valid calendar date.";
       }
     }
@@ -75,6 +87,7 @@ export const validateTaskDetails = ({
     errors,
   };
 };
+
 
 // TODO: Create a new task inside a project
 // post :wsId/project/projectid/taskId
@@ -196,9 +209,9 @@ export const getAllTasks = async (req, res) => {
      AND p.workspace_id = ?`,
       [projId, wsId],
     );
-    if (rows.length === 0) {
-      return res.status(404).json({ message: "Project has no tasks!" });
-    }
+    // if (rows.length === 0) {
+    //   return res.status(404).json({ message: "Project has no tasks!" });
+    // }
     return res
       .status(200)
       .json({ message: "All tasks fetched successfully!", tasks: rows });
@@ -277,8 +290,22 @@ export const updateTask = async (req, res) => {
     });
   }
 
- 
+//todo make validation for update task details
+if (Object.keys(req.body).length === 0) {
+  return res.status(400).json({
+    message: "Provide at least one field to update.",
+  });
+}
+const validation = validateTaskDetails(req.body, {
+  partial: true,
+});
 
+if (!validation.isValid) {
+  return res.status(400).json({
+    message: "Invalid task details.",
+    errors: validation.errors,
+  });
+}
   try {
     const allowedFields = [
       "title",
