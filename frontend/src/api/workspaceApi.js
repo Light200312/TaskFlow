@@ -19,3 +19,22 @@ export const getWorkspaceMembers = async (workspaceId) => {
   const { data } = await api.get(`/workspaces/members/${workspaceId}`);
   return data;
 };
+
+export const updateWorkspaceMemberRole = async (
+  workspaceId,
+  userId,
+  role,
+) => {
+  const { data } = await api.put(
+    `/workspaces/members/${workspaceId}/${userId}/role`,
+    { role },
+  );
+  return data;
+};
+
+export const removeWorkspaceMember = async (workspaceId, userId) => {
+  const { data } = await api.delete(
+    `/workspaces/members/${workspaceId}/${userId}`,
+  );
+  return data;
+};

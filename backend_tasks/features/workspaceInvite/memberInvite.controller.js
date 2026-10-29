@@ -213,14 +213,17 @@ export const getPendingInvitations = async (req, res) => {
          wi.status,
          wi.created_at,
          w.name AS workspace_name,
-         u.name AS inviter_name
+         u.name AS inviter_name,
+         invited_user.name AS invited_user_name,
+         (wi.invited_by = ?) AS is_sender
        FROM workspace_invitations AS wi
        JOIN workspaces AS w ON w.id = wi.workspace_id
        JOIN users AS u ON u.id = wi.invited_by
-       WHERE wi.invited_user_id = ? OR wi.invited_by = ?
+       JOIN users AS invited_user ON invited_user.id = wi.invited_user_id
+       WHERE (wi.invited_user_id = ? OR wi.invited_by = ?)
          AND wi.status = 'pending'
        ORDER BY wi.created_at DESC`,
-      [userId, userId]
+      [userId, userId, userId]
     );
 
     if (rows.length === 0) {
