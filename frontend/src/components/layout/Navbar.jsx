@@ -1,8 +1,10 @@
 
+import { useEffect, useState } from "react";
 import { Bell, LogOut, Moon, Sun } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
 import useTheme from "../../hooks/useTheme";
+import { getCurrentUserAvatar } from "../../api/userApi";
 
 const pageTitles = {
   "/dashboard": "Dashboard",
@@ -18,8 +20,31 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   const username = useAuthStore((state) => state.username);
+  const avatarRevision = useAuthStore((state) => state.avatarRevision);
   const logout = useAuthStore((state) => state.logout);
   const { isDark, toggleTheme } = useTheme();
+  const [avatarUrl, setAvatarUrl] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    let objectUrl = "";
+
+    getCurrentUserAvatar()
+      .then((blob) => {
+        if (!cancelled) {
+          objectUrl = URL.createObjectURL(blob);
+          setAvatarUrl(objectUrl);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setAvatarUrl("");
+      });
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [avatarRevision]);
 
   function handleLogout() {
     logout();
@@ -60,9 +85,17 @@ export default function Navbar() {
           <p className="text-xs text-text-secondary">TaskFlow account</p>
         </div>
 
-        <div className="flex size-9 items-center justify-center rounded-full bg-indigo-100 font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
-          {(username || "U").charAt(0).toUpperCase()}
-        </div>
+        {avatarUrl ? (
+          <img
+            alt={`${username || "User"} profile`}
+            className="size-9 rounded-full border border-app-border object-cover"
+            src={avatarUrl}
+          />
+        ) : (
+          <div className="flex size-9 items-center justify-center rounded-full bg-indigo-100 font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+            {(username || "U").charAt(0).toUpperCase()}
+          </div>
+        )}
 
         <button
           type="button"

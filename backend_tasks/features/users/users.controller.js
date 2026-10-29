@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import pool from "../../db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { getAvatarCollection } from "../../db/mongo.js";
 dotenv.config();
 export const registerUser=async (req, res) => {
   const { username, email, password } = req.body;
@@ -203,9 +204,9 @@ export const updateUserName = async (req, res) => {
     });
   }
 
-  if (name.length > 150) {
+  if (name.length > 100) {
     return res.status(400).json({
-      message: "Name cannot exceed 150 characters.",
+      message: "Name cannot exceed 100 characters.",
     });
   }
 
@@ -237,6 +238,126 @@ export const updateUserName = async (req, res) => {
 
     return res.status(500).json({
       message: "Internal server error.",
+    });
+  }
+};
+
+const isSupportedImage = (buffer, contentType) => {
+  if (contentType === "image/jpeg") {
+    return (
+      buffer.length >= 3 &&
+      buffer[0] === 0xff &&
+      buffer[1] === 0xd8 &&
+      buffer[2] === 0xff
+    );
+  }
+
+  if (contentType === "image/png") {
+    return buffer.subarray(0, 8).equals(
+      Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    );
+  }
+
+  if (contentType === "image/webp") {
+    return (
+      buffer.length >= 12 &&
+      buffer.toString("ascii", 0, 4) === "RIFF" &&
+      buffer.toString("ascii", 8, 12) === "WEBP"
+    );
+  }
+
+  return false;
+};
+
+// PUT /api/users/me/avatar
+export const uploadCurrentUserAvatar = async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({
+      message: "Select a PNG, JPEG, or WebP image to upload.",
+    });
+  }
+
+  if (!isSupportedImage(req.file.buffer, req.file.mimetype)) {
+    return res.status(400).json({
+      message: "The uploaded file is not a valid PNG, JPEG, or WebP image.",
+    });
+  }
+
+  try {
+    const avatars = await getAvatarCollection();
+    await avatars.updateOne(
+      { _id: req.user.userId },
+      {
+        $set: {
+          contentType: req.file.mimetype,
+          data: req.file.buffer,
+          updatedAt: new Date(),
+        },
+      },
+      { upsert: true },
+    );
+
+    return res.status(200).json({
+      message: "Profile picture updated successfully.",
+      hasAvatar: true,
+    });
+  } catch (error) {
+    console.error("Avatar storage operation failed:", error.name);
+    return res.status(503).json({
+      message: "Profile picture storage is temporarily unavailable.",
+    });
+  }
+};
+
+// GET /api/users/me/avatar
+export const getCurrentUserAvatar = async (req, res) => {
+  try {
+    const avatars = await getAvatarCollection();
+    const avatar = await avatars.findOne(
+      { _id: req.user.userId },
+      { projection: { contentType: 1, data: 1 } },
+    );
+
+    if (!avatar) {
+      return res.status(404).json({
+        message: "No profile picture has been uploaded.",
+      });
+    }
+
+    const imageBuffer = Buffer.isBuffer(avatar.data)
+      ? avatar.data
+      : avatar.data.value(true);
+
+    res
+      .status(200)
+      .set({
+        "Content-Type": avatar.contentType,
+        "Cache-Control": "private, no-store",
+        "X-Content-Type-Options": "nosniff",
+      })
+      .send(imageBuffer);
+  } catch (error) {
+    console.error("Avatar storage operation failed:", error.name);
+    return res.status(503).json({
+      message: "Profile picture storage is temporarily unavailable.",
+    });
+  }
+};
+
+// DELETE /api/users/me/avatar
+export const deleteCurrentUserAvatar = async (req, res) => {
+  try {
+    const avatars = await getAvatarCollection();
+    await avatars.deleteOne({ _id: req.user.userId });
+
+    return res.status(200).json({
+      message: "Profile picture removed successfully.",
+      hasAvatar: false,
+    });
+  } catch (error) {
+    console.error("Avatar storage operation failed:", error.name);
+    return res.status(503).json({
+      message: "Profile picture storage is temporarily unavailable.",
     });
   }
 };

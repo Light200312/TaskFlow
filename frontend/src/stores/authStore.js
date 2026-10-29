@@ -10,6 +10,14 @@ export const useAuthStore = create((set) => ({
   username: localStorage.getItem(USERNAME_KEY),
   isAuthenticated: Boolean(localStorage.getItem(TOKEN_KEY)),
   loading: false,
+  avatarRevision: 0,
+
+  setUsername: (username) => {
+    localStorage.setItem(USERNAME_KEY, username);
+    set({ username });
+  },
+  refreshAvatar: () =>
+    set((state) => ({ avatarRevision: state.avatarRevision + 1 })),
 
   register: async (userData) => {
     set({ loading: true });
