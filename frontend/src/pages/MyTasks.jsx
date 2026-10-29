@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getAssignedTasks, updateTask } from "../api/taskApi";
+import useDebounce from "../hooks/useDebounce";
 
 const STATUSES = [
   { value: "todo", label: "To do" },
@@ -160,6 +161,7 @@ export default function MyTasks() {
   const [actionError, setActionError] = useState("");
   const [updatingTaskIds, setUpdatingTaskIds] = useState(() => new Set());
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search);
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [view, setView] = useState("list");
@@ -190,7 +192,7 @@ export default function MyTasks() {
   }, [reloadCount]);
 
   const filteredTasks = useMemo(() => {
-    const query = search.trim().toLowerCase();
+    const query = debouncedSearch.trim().toLowerCase();
     return tasks.filter((task) => {
       const matchesSearch =
         !query ||
@@ -203,13 +205,13 @@ export default function MyTasks() {
         priorityFilter === "all" || task.priority === priorityFilter;
       return matchesSearch && matchesStatus && matchesPriority;
     });
-  }, [tasks, search, statusFilter, priorityFilter]);
+  }, [tasks, debouncedSearch, statusFilter, priorityFilter]);
 
   const overdueCount = tasks.filter(
     (task) => task.status !== "done" && isOverdue(task.due_date),
   ).length;
   const hasFilters =
-    Boolean(search.trim()) ||
+    Boolean(debouncedSearch.trim()) ||
     statusFilter !== "all" ||
     priorityFilter !== "all";
 

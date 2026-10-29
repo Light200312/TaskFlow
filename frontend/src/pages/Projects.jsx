@@ -24,6 +24,7 @@ import {
 import { getWorkspaces } from "../api/workspaceApi";
 import ProjectCard from "../features/projects/ProjectCard";
 import ProjectForm from "../features/projects/ProjectForm";
+import useDebounce from "../hooks/useDebounce";
 
 const INPUT_STYLES =
   "w-full rounded-lg border border-app-border bg-surface px-3 py-2.5 text-sm text-text-primary outline-none transition placeholder:text-text-secondary focus:border-brand focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900";
@@ -50,6 +51,7 @@ export default function Projects() {
   const [projectsLoading, setProjectsLoading] = useState(false);
   const [projectsError, setProjectsError] = useState("");
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search);
   const [statusFilter, setStatusFilter] = useState("all");
   const [modalProject, setModalProject] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -157,7 +159,7 @@ export default function Projects() {
   }, [workspaceId, activeWorkspace, loadProjects]);
 
   const filteredProjects = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
+    const normalizedSearch = debouncedSearch.trim().toLowerCase();
     return projects.filter((project) => {
       const matchesSearch =
         !normalizedSearch ||
@@ -168,7 +170,7 @@ export default function Projects() {
         statusFilter === "all" || project.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
-  }, [projects, search, statusFilter]);
+  }, [projects, debouncedSearch, statusFilter]);
 
   function selectWorkspace(nextWorkspaceId) {
     const nextParams = new URLSearchParams(searchParams);
