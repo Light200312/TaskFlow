@@ -158,3 +158,85 @@ try{
   return res.status(500).json({ message: "Internal server error" });
 }
 }
+
+// GET /api/users/me
+export const getCurrentUser = async (req, res) => {
+  const userId = req.user.userId ?? req.user.id;
+
+  try {
+    const [users] = await pool.query(
+      `SELECT id, name, email
+       FROM users
+       WHERE id = ?`,
+      [userId],
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({
+        message: "User not found.",
+      });
+    }
+
+    return res.status(200).json({
+      user: users[0],
+    });
+  } catch (error) {
+    console.error("Error fetching current user:", error);
+
+    return res.status(500).json({
+      message: "Internal server error.",
+    });
+  }
+};
+
+// PUT /api/users/me/name
+export const updateUserName = async (req, res) => {
+  const userId = req.user.userId ?? req.user.id;
+  const name =
+    typeof req.body.name === "string"
+      ? req.body.name.trim()
+      : "";
+
+  if (!name) {
+    return res.status(400).json({
+      message: "Name is required.",
+    });
+  }
+
+  if (name.length > 150) {
+    return res.status(400).json({
+      message: "Name cannot exceed 150 characters.",
+    });
+  }
+
+  try {
+    const [result] = await pool.query(
+      "UPDATE users SET name = ? WHERE id = ?",
+      [name, userId],
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        message: "User not found.",
+      });
+    }
+
+    const [users] = await pool.query(
+      `SELECT id, name, email
+       FROM users
+       WHERE id = ?`,
+      [userId],
+    );
+
+    return res.status(200).json({
+      message: "Name updated successfully.",
+      user: users[0],
+    });
+  } catch (error) {
+    console.error("Error updating user name:", error);
+
+    return res.status(500).json({
+      message: "Internal server error.",
+    });
+  }
+};
