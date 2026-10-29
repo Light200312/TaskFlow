@@ -68,6 +68,11 @@ export default function ProjectCard({
             <p className="mt-1 text-xs text-text-secondary">
               Project #{project.id}
             </p>
+            {project.created_by_name && (
+              <p className="mt-1 truncate text-xs text-text-secondary">
+                Created by {project.created_by_name}
+              </p>
+            )}
           </div>
         </div>
         <span
