@@ -9,7 +9,7 @@ const PROJECT_STATUSES = [
 ];
 
 const INPUT_STYLES =
-  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:ring-indigo-950";
+  "w-full rounded-lg border border-app-border bg-surface px-3 py-2.5 text-sm text-text-primary outline-none transition placeholder:text-text-secondary focus:border-brand focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900";
 
 export default function ProjectForm({
   project,
@@ -48,18 +48,18 @@ export default function ProjectForm({
       <section
         aria-labelledby="project-form-title"
         aria-modal="true"
-        className="my-auto w-full max-w-xl rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900"
+        className="my-auto w-full max-w-xl rounded-2xl border border-app-border bg-surface-elevated p-6 shadow-2xl"
         role="dialog"
       >
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
             <h2
-              className="text-xl font-semibold text-slate-900 dark:text-white"
+              className="text-xl font-semibold text-text-primary"
               id="project-form-title"
             >
               {project ? "Edit project" : "Create project"}
             </h2>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-sm text-text-secondary">
               {project
                 ? "Update the project details."
                 : `Add a project${workspaceName ? ` to ${workspaceName}` : ""}.`}
@@ -67,7 +67,7 @@ export default function ProjectForm({
           </div>
           <button
             aria-label="Close dialog"
-            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-50 dark:hover:bg-slate-800 dark:hover:text-white"
+            className="rounded-lg p-2 text-text-secondary hover:bg-subtle-hover hover:text-text-primary disabled:opacity-50"
             disabled={submitting}
             onClick={onClose}
             type="button"
@@ -79,7 +79,7 @@ export default function ProjectForm({
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label
-              className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
+              className="mb-1.5 block text-sm font-medium text-text-primary"
               htmlFor="project-name"
             >
               Project name
@@ -98,7 +98,7 @@ export default function ProjectForm({
 
           <div>
             <label
-              className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
+              className="mb-1.5 block text-sm font-medium text-text-primary"
               htmlFor="project-description"
             >
               Description
@@ -116,7 +116,7 @@ export default function ProjectForm({
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label
-                className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
+                className="mb-1.5 block text-sm font-medium text-text-primary"
                 htmlFor="project-status"
               >
                 Status
@@ -136,7 +136,7 @@ export default function ProjectForm({
             </div>
             <div>
               <label
-                className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
+                className="mb-1.5 block text-sm font-medium text-text-primary"
                 htmlFor="project-due-date"
               >
                 Due date
@@ -160,9 +160,9 @@ export default function ProjectForm({
             </p>
           )}
 
-          <div className="flex justify-end gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
+          <div className="flex justify-end gap-3 border-t border-app-border pt-4">
             <button
-              className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="rounded-lg border border-app-border px-4 py-2.5 text-sm font-medium text-text-primary hover:bg-subtle-hover disabled:opacity-50"
               disabled={submitting}
               onClick={onClose}
               type="button"
@@ -170,7 +170,7 @@ export default function ProjectForm({
               Cancel
             </button>
             <button
-              className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
               disabled={submitting || !name.trim()}
               type="submit"
             >

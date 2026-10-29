@@ -52,17 +52,20 @@ export default function ProjectCard({
       : project.status?.charAt(0).toUpperCase() + project.status?.slice(1);
 
   return (
-    <article className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 transition hover:border-indigo-300 hover:shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:hover:border-indigo-700">
+    <article className="group flex h-full flex-col rounded-xl border border-app-border bg-surface p-5 transition duration-200 hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md dark:hover:border-indigo-700">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300">
             <FolderKanban size={22} />
           </div>
           <div className="min-w-0">
-            <h2 className="break-words font-semibold text-slate-900 dark:text-slate-100">
+            <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
+              Project
+            </p>
+            <h2 className="break-words font-semibold text-text-primary">
               {project.name}
             </h2>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-xs text-text-secondary">
               Project #{project.id}
             </p>
           </div>
@@ -76,12 +79,12 @@ export default function ProjectCard({
         </span>
       </div>
 
-      <p className="mt-4 min-h-10 whitespace-pre-wrap break-words text-sm text-slate-600 dark:text-slate-300">
+      <p className="mt-4 min-h-10 whitespace-pre-wrap break-words text-sm leading-6 text-text-secondary">
         {project.description || "No description provided."}
       </p>
 
       {project.due_date && (
-        <div className="mt-4 flex items-center gap-2 border-t border-slate-100 pt-4 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
+        <div className="mt-4 flex items-center gap-2 border-t border-app-border pt-4 text-xs text-text-secondary">
           <CalendarDays size={15} />
           Due {formatDate(project.due_date)}
         </div>
@@ -89,7 +92,7 @@ export default function ProjectCard({
 
       <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-5">
         <Link
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+          className="inline-flex items-center gap-1.5 rounded text-sm font-semibold text-brand hover:text-brand-hover"
           to={`/workspaces/${workspaceId}/projects/${project.id}`}
         >
           Open project <ExternalLink size={15} />

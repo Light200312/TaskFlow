@@ -21,16 +21,16 @@ const navigation = [
 
 export default function Sidebar() {
   return (
-    <aside className="flex h-full w-64 shrink-0 flex-col bg-slate-900 text-white">
-      <div className="flex h-16 items-center gap-3 border-b border-slate-700 px-5">
-        <div className="rounded-lg bg-blue-600 p-2">
+    <aside className="flex h-full w-64 shrink-0 flex-col border-r border-app-border bg-surface text-text-primary">
+      <div className="flex h-16 items-center gap-3 border-b border-app-border px-5">
+        <div className="rounded-lg bg-indigo-600 p-2 text-white">
           <CheckCheck size={22} />
         </div>
         <span className="text-xl font-bold">TaskFlow</span>
       </div>
 
       <div className="px-4 pt-6">
-        <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-text-secondary">
           Workspace
         </p>
 
@@ -42,8 +42,8 @@ export default function Sidebar() {
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                   isActive
-                    ? "bg-blue-600 text-white"
-                    : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                    ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
+                    : "text-text-secondary hover:bg-subtle-hover hover:text-text-primary"
                 }`
               }
             >
@@ -54,14 +54,14 @@ export default function Sidebar() {
         </nav>
       </div>
 
-      <div className="mt-auto border-t border-slate-700 p-4">
+      <div className="mt-auto border-t border-app-border p-4">
         <NavLink
           to="/settings"
           className={({ isActive }) =>
             `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium ${
               isActive
-                ? "bg-blue-600 text-white"
-                : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
+                : "text-text-secondary hover:bg-subtle-hover hover:text-text-primary"
             }`
           }
         >
