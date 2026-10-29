@@ -503,21 +503,29 @@ const assigneeId =
 // TODO: Update task priority
 // TODO: Set or update task due date
 // TODO: Get tasks assigned to the logged-in user
+
 export const getAssignedTasks = async (req, res) => {
   const userId = req.user.userId;
 
   try {
     const [tasks] = await pool.query(
-      "SELECT * FROM tasks WHERE assignee_id = ? AND status <> ?",
-      [userId, "done"],
+      `SELECT
+        t.*,
+        p.name AS project_name,
+        p.status AS project_status,
+        p.due_date AS project_due_date,
+        p.workspace_id
+      FROM tasks AS t
+      INNER JOIN projects AS p
+        ON p.id = t.project_id
+      WHERE t.assignee_id = ?
+      ORDER BY t.id DESC`,
+      [userId],
     );
 
-    if (tasks.length === 0) {
-      return res.status(404).json({ message: "User has no pending tasks." });
-    }
-
     return res.status(200).json({
-      message: "Pending tasks fetched successfully.",
+      message: "Assigned tasks fetched successfully.",
+      count: tasks.length,
       tasks,
     });
   } catch (error) {
@@ -528,6 +536,7 @@ export const getAssignedTasks = async (req, res) => {
     });
   }
 };
+
 //Filter tasks by status, priority, and assignee
 export const filterTasks = async (req, res) => {
   const { workspaceId, projectId } = req.params;
