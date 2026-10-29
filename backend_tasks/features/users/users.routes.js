@@ -12,6 +12,7 @@ import {
 } from "./users.controller.js";
 import {authGuard} from "../../midlewares/authGuard.js"
 const router = express.Router();
+//creates buffer storage for multer and sets file size limit to 2MB. Also filters for PNG, JPEG, or WebP images.
 const avatarUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 2 * 1024 * 1024, files: 1 },
@@ -26,7 +27,7 @@ const avatarUpload = multer({
     callback(null, true);
   },
 });
-
+//handles multer errors and sends appropriate response to the client
 function parseAvatarUpload(req, res, next) {
   avatarUpload.single("avatar")(req, res, (error) => {
     if (!error) {
