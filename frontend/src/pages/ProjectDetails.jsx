@@ -247,6 +247,11 @@ export default function ProjectDetails() {
             <p className="mt-2 max-w-2xl text-sm text-slate-500 dark:text-slate-400">
               {project.description || "No project description provided."}
             </p>
+            {project.created_by_name && (
+              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                Created by {project.created_by_name}
+              </p>
+            )}
           </div>
 
           <span className="rounded-full bg-blue-100 px-3 py-1 text-sm capitalize text-blue-700 dark:bg-blue-950 dark:text-blue-300">

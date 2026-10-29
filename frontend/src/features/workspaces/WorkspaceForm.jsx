@@ -54,24 +54,24 @@ export default function WorkspaceForm({
       <section
         aria-labelledby="workspace-form-title"
         aria-modal="true"
-        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+        className="w-full max-w-md rounded-2xl border border-app-border bg-surface-elevated p-6 shadow-xl"
         role="dialog"
       >
         <div className="mb-5 flex items-start justify-between">
           <div>
             <h2
-              className="text-xl font-bold text-slate-900"
+              className="text-xl font-bold text-text-primary"
               id="workspace-form-title"
             >
               Create workspace
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-text-secondary">
               Set up a space for your team and projects.
             </p>
           </div>
           <button
             aria-label="Close modal"
-            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 disabled:opacity-50"
+            className="rounded-lg p-1.5 text-text-secondary hover:bg-subtle-hover disabled:opacity-50"
             disabled={creating}
             onClick={onClose}
             type="button"
@@ -83,14 +83,14 @@ export default function WorkspaceForm({
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label
-              className="mb-1.5 block text-sm font-medium text-slate-700"
+              className="mb-1.5 block text-sm font-medium text-text-primary"
               htmlFor="workspace-name"
             >
               Workspace name
             </label>
             <input
               autoFocus
-              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm text-black outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+              className="w-full rounded-lg border border-app-border bg-surface px-3 py-2.5 text-sm text-text-primary outline-none focus:border-brand focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900"
               id="workspace-name"
               maxLength={100}
               onChange={(event) => {
@@ -106,13 +106,13 @@ export default function WorkspaceForm({
 
           <div>
             <label
-              className="mb-1.5 block text-sm font-medium text-slate-700"
+              className="mb-1.5 block text-sm font-medium text-text-primary"
               htmlFor="workspace-slug"
             >
               Workspace slug
             </label>
             <input
-              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm text-black outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+              className="w-full rounded-lg border border-app-border bg-surface px-3 py-2.5 text-sm text-text-primary outline-none focus:border-brand focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900"
               id="workspace-slug"
               maxLength={100}
               onChange={(event) => {
@@ -123,14 +123,14 @@ export default function WorkspaceForm({
               required
               value={slug}
             />
-            <p className="mt-1.5 text-xs text-slate-500">
+            <p className="mt-1.5 text-xs text-text-secondary">
               Lowercase letters, numbers, and hyphens only.
             </p>
           </div>
 
           {(validationError || error) && (
             <p
-              className="rounded-lg bg-red-50 p-3 text-sm text-red-700"
+              className="rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/50 dark:text-red-300"
               role="alert"
             >
               {validationError || error}
@@ -139,7 +139,7 @@ export default function WorkspaceForm({
 
           <div className="flex justify-end gap-3 pt-2">
             <button
-              className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              className="rounded-lg border border-app-border px-4 py-2.5 text-sm font-semibold text-text-primary hover:bg-subtle-hover disabled:opacity-50"
               disabled={creating}
               onClick={onClose}
               type="button"
@@ -147,7 +147,7 @@ export default function WorkspaceForm({
               Cancel
             </button>
             <button
-              className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
               disabled={creating}
               type="submit"
             >
