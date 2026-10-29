@@ -9,6 +9,7 @@ import workspaceRoutes from './features/workspaces/workspaces.routes.js'
 import workspaceMemberRoutes from './features/workspaceMembers/workspaceMembers.routes.js'
 import projectRoutes from './features/projects/projects.routes.js'
 import taskRoutes from './features/tasks/tasks.routes.js'
+import dashboardRoutes from './features/dashboard/dashboard.routes.js'
 dotenv.config();
 
 
@@ -34,6 +35,7 @@ app.use('/api/invitations', inviteRoutes);
 app.use('/api/workspaces/members', workspaceMemberRoutes);
 app.use("/api",projectRoutes);
 app.use("/api/tasks",taskRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);
 });
