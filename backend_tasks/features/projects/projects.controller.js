@@ -3,12 +3,14 @@
 CREATE TABLE projects (
   id           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   workspace_id INT UNSIGNED NOT NULL,
+  created_by   INT UNSIGNED NOT NULL,
   name         VARCHAR(150) NOT NULL,
   description  TEXT,
   status       ENUM('planning','active','on_hold','completed','archived') NOT NULL DEFAULT 'planning',
   due_date     DATE NULL,
   created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE
+  FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE,
+  FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT
 );
 */
 import pool from "../../db.js";
@@ -44,6 +46,7 @@ const validateProjectDetails = (name, description, status, due_date, partial = f
 export const createProject = async (req, res) => {
   const { workspaceId } = req.params;
   const { name, description, status, due_date } = req.body ?? {};
+  const createdBy = req.user.userId;
 
   // TODO: Validate inputs
 
@@ -54,10 +57,11 @@ export const createProject = async (req, res) => {
   try {
     const [result] = await pool.query(
       `INSERT INTO projects
-       (workspace_id, name, description, status, due_date)
-       VALUES (?, ?, ?, ?, ?)`,
+       (workspace_id, created_by, name, description, status, due_date)
+       VALUES (?, ?, ?, ?, ?, ?)`,
       [
         Number(workspaceId),
+        createdBy,
         name.trim(),
         description ?? null,
         status ?? "planning",
@@ -65,9 +69,13 @@ export const createProject = async (req, res) => {
       ],
     );
 
-    const [projects] = await pool.query("SELECT * FROM projects WHERE id = ?", [
-      result.insertId,
-    ]);
+    const [projects] = await pool.query(
+      `SELECT p.*, u.name AS created_by_name
+       FROM projects AS p
+       INNER JOIN users AS u ON u.id = p.created_by
+       WHERE p.id = ?`,
+      [result.insertId],
+    );
 
     return res.status(201).json({
       message: "Project created successfully",
@@ -88,11 +96,13 @@ export const getProjectsByWorkspace = async (req, res) => {
   }
   try {
     const [projects] = await pool.query(
-      `SELECT id, name, status, description, due_date,
-              workspace_id, created_at
-       FROM projects
-       WHERE workspace_id = ?
-       ORDER BY created_at DESC`,
+      `SELECT p.id, p.name, p.status, p.description, p.due_date,
+              p.workspace_id, p.created_by, p.created_at,
+              u.name AS created_by_name
+       FROM projects AS p
+       INNER JOIN users AS u ON u.id = p.created_by
+       WHERE p.workspace_id = ?
+       ORDER BY p.created_at DESC`,
       [Number(workspaceId)],
     );
 
@@ -122,11 +132,13 @@ export const getProjectsByProjectId = async (req, res) => {
   }
   try {
     const [projects] = await pool.query(
-      `SELECT id, name, status, description, due_date,
-              workspace_id, created_at
-       FROM projects
-       WHERE workspace_id = ? AND id = ?
-       ORDER BY created_at DESC`,
+      `SELECT p.id, p.name, p.status, p.description, p.due_date,
+              p.workspace_id, p.created_by, p.created_at,
+              u.name AS created_by_name
+       FROM projects AS p
+       INNER JOIN users AS u ON u.id = p.created_by
+       WHERE p.workspace_id = ? AND p.id = ?
+       ORDER BY p.created_at DESC`,
       [Number(workspaceId), Number(projectId)],
     );
 
@@ -173,8 +185,11 @@ export const updateProject = async (req, res) => {
     }
 
     const [updatedProjects] = await pool.query(
-      "SELECT * FROM projects WHERE id = ?",
-      [Number(projectId)],
+      `SELECT p.*, u.name AS created_by_name
+       FROM projects AS p
+       INNER JOIN users AS u ON u.id = p.created_by
+       WHERE p.id = ? AND p.workspace_id = ?`,
+      [Number(projectId), Number(workspaceId)],
     );
 
     return res.status(200).json({
